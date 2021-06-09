@@ -27,7 +27,7 @@ model Guild {
 }
 
 model Channel {
-  name      String    @unique
+  name      String
   id        String    @id @default(cuid())
   createdAt DateTime  @default(now())
   guild     Guild     @relation(fields: [guildId], references: [id])
@@ -37,6 +37,7 @@ model Channel {
 
 model Message {
   id        String  @id @default(cuid())
+  content   String
   author    User    @relation(fields: [authorId], references: [id])
   authorId  String
   channel   Channel @relation(fields: [channelId], references: [id])
