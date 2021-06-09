@@ -1,22 +1,16 @@
-import asyncio
-import threading
-
 import requests
-import websocket
 from blessed import Terminal
 
 term = Terminal()
-
-instance = 'http://localhost:3000'
-wss_instance = 'ws://localhost:8080'
+instance = 'https://adjoining-bit-production.up.railway.app'
 
 uname = input('Enter a username: ')
 
 user_req = requests.get(instance + '/user/' + uname)
 if (user_req.status_code == 404):
-    promptAnswer = input(
+    prompt_answer = input(
         "That username isn't taken. Would you like to register it? (y/n) ")
-    if (not ('y' in promptAnswer)):
+    if (not ('y' in prompt_answer)):
         print('Quitting...')
         exit()
 
@@ -31,23 +25,23 @@ if (user_req.status_code == 404):
 
 current_user = user_req.json()
 
-guildsReq = requests.get(instance + '/guilds/' + current_user['name'])
+guilds_req = requests.get(instance + '/guilds/' + current_user['name'])
 
-guilds = guildsReq.json()
+guilds = guilds_req.json()
 
 current_channel = guilds['data'][0]['channels'][0]
 current_server = guilds['data'][0]
 
-msgText = ''
+chatbox = ''
 
 
 def show_msg_view():
-    global msgText
+    global chatbox
     with term.fullscreen():
         while (True):
             msg = None
             print(term.clear())
-            print(msgText)
+            print(chatbox)
             with term.location(0, term.height - 1):
                 msg = input('[#' + current_channel['name'] + ' in ' +
                             term.bold(current_server['name']) + '] ')
@@ -56,7 +50,7 @@ def show_msg_view():
                     break
                 requests.post(instance + '/message/' +
                               current_channel['id'] + '/' + current_user['id'], json={'content': msg})
-                msgText = msgText + '\n' + \
+                chatbox = chatbox + '\n' + \
                     term.goldenrod(
                         term.bold(current_user['name'])) + ': ' + msg
             print(term.clear())
@@ -66,28 +60,28 @@ def show_msg_view():
 def refresh_msg_view():
     with term.fullscreen():
         print(term.clear())
-        print(msgText)
+        print(chatbox)
         with term.location(0, term.height - 1):
             print('[#' + current_channel['name'] + ' in ' +
                   term.bold(current_server['name']) + '] ')
 
 
 def process_command(vals):
-    global msgText
+    global chatbox
     if (vals[0] == 'help'):
-        msgText += term.bold(term.dodgerblue('\n\nClyde[BOT]') + ':\n') + term.bold('Commands') + \
+        chatbox += term.bold(term.dodgerblue('\n\nSystem[BOT]') + ':\n') + term.bold('Commands') + \
             '\n/help - shows this menu\n/listguilds - list guilds you are in\n/channel - switch channel\n/guild - switch guild\n/joinguild - joins a guild\n/clear - clears message\n /refresh - refreshes messages' + \
             term.bold('\nOnly you can see this.\n')
         show_msg_view()
         return
     if (vals[0] == 'clear'):
-        msgText = ''
+        chatbox = ''
         show_msg_view()
         return
     if (vals[0] == 'listguilds'):
         guilds_data = requests.get(
             instance + '/guilds/' + current_user['name']).json()['data']
-        msgText += term.bold(term.dodgerblue('\n\nClyde[BOT]') + ':\n') + term.bold('Guilds') + \
+        chatbox += term.bold(term.dodgerblue('\n\nSystem[BOT]') + ':\n') + term.bold('Guilds') + \
             '\n' + "\n".join(map(map_to_guild_name, guilds_data)) + \
             term.bold('\nOnly you can see this.\n')
         show_msg_view()
@@ -96,7 +90,7 @@ def process_command(vals):
         try:
             vals[1]
         except:
-            msgText += term.bold(term.dodgerblue('\n\nClyde[BOT]') + ':\n') + term.bold('Error') + \
+            chatbox += term.bold(term.dodgerblue('\n\nSystem[BOT]') + ':\n') + term.bold('Error') + \
                 '\n' + 'I need to know what guild you want to join. Ask the inviter to run the listguilds command.' + \
                 term.bold('\nOnly you can see this.\n')
             show_msg_view()
@@ -104,7 +98,7 @@ def process_command(vals):
         new_guild_data = requests.put(
             instance + '/join-guild/' + vals[1], json={'name': current_user['name']})
         if (not new_guild_data.ok):
-            msgText += term.bold(term.dodgerblue('\n\nClyde[BOT]') + ':\n') + term.bold('Error') + \
+            chatbox += term.bold(term.dodgerblue('\n\nSystem[BOT]') + ':\n') + term.bold('Error') + \
                 '\n' + 'I could not find the guild you were trying to join.' + \
                 term.bold('\nOnly you can see this.\n')
         global current_channel
@@ -124,10 +118,10 @@ def process_command(vals):
                     current_user['name']) + ': ' + msg['content'])
             else:
                 new_msgs.append(msg['author']['name'] + ': ' + msg['content'])
-        msgText = "\n".join(new_msgs)
+        chatbox = "\n".join(new_msgs)
         show_msg_view()
         return
-    msgText += term.bold(term.dodgerblue('\n\nClyde[BOT]') + ':\n') + term.bold('Error') + \
+    chatbox += term.bold(term.dodgerblue('\n\nSystem[BOT]') + ':\n') + term.bold('Error') + \
         '\n' + 'That command does not exist.' + \
         term.bold('\nOnly you can see this.\n')
     show_msg_view()
