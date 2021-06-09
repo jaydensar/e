@@ -2,13 +2,14 @@
 name = "termchat"
 version = "1.0.0"
 description = ""
-authors = ["jaydensar <jayden@jaydensar.net>"]
+authors = ["jayden <jayden@jaydensar.net>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
 requests = "^2.25.1"
 blessed = "^1.18.0"
+python-dotenv = "^0.17.1"
 
 [tool.poetry.dev-dependencies]
 

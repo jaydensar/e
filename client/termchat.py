@@ -1,8 +1,13 @@
+import os
+
 import requests
 from blessed import Terminal
+from dotenv import load_dotenv
+
+load_dotenv()
 
 term = Terminal()
-instance = 'https://adjoining-bit-production.up.railway.app'
+instance = os.getenv('INSTANCE')
 
 uname = input('Enter a username: ')
 
